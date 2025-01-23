@@ -1,0 +1,17 @@
+{
+  "manifest_version": 3,
+  "description": "Track and manage project timers",
+  "version": "1.0.0",
+  "name": "TickDev",
+  "author": "mahmoud.hashem.dev@gmail.com",
+  "icons": {
+    "48": "./public/TickDev.png"
+  },
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": ["storage", "notifications"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
