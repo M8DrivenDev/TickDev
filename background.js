@@ -46,34 +46,5 @@ function startPersistentProjectCounter() {
   }, 1000);
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const { command, projectId } = message;
-
-  if (command === "pause") {
-    chrome.storage.sync.get(projectId, (data) => {
-      if (data[projectId]) {
-        chrome.storage.sync.set({
-          [projectId]: {
-            ...data[projectId],
-            status: "HOLD",
-          },
-        });
-      }
-    });
-  } else if (command === "play") {
-    chrome.storage.sync.get(projectId, (data) => {
-      if (data[projectId]) {
-        chrome.storage.sync.set({
-          [projectId]: {
-            ...data[projectId],
-            status: "ACTIVE",
-          },
-        });
-      }
-    });
-  }
-  sendResponse({ success: true });
-});
-
 chrome.runtime.onInstalled.addListener(startPersistentProjectCounter);
 chrome.runtime.onStartup.addListener(startPersistentProjectCounter);

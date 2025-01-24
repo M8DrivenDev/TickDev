@@ -31,14 +31,10 @@ function fetchAllProjects() {
       card.classList.add(...cardClasses);
 
       const createdAt = new Date(ele.details.createdAt).toLocaleString();
-      const initialTime = ele.details.initialTime || "Not Set";
+      const initialTime = ele.details.initialTime;
       const status = ele.details.status || "ACTIVE";
       let remainingTime = ele.details.remainingTime;
-      remainingTime = formatTime(
-        Math.floor(remainingTime / 3600),
-        Math.floor((remainingTime % 3600) / 60),
-        remainingTime % 60,
-      );
+      remainingTime = formatTime(remainingTime);
 
       const id = ele.projectId;
 
@@ -99,16 +95,6 @@ ${
 
 fetchAllProjects();
 
-function sendCommand(command, projectId) {
-  chrome.runtime.sendMessage({ command, projectId }, (response) => {
-    if (response && response.success) {
-      fetchAllProjects();
-    } else {
-      console.error("Unexpected response:", response);
-    }
-  });
-}
-
 document.getElementById("cards-container").addEventListener("click", (e) => {
   const button = e.target.closest("button");
   if (button) {
@@ -130,8 +116,31 @@ document.getElementById("cards-container").addEventListener("click", (e) => {
       chrome.storage.sync.remove([projectId], () => {
         fetchAllProjects();
       });
+    } else if (command === "pause") {
+      chrome.storage.sync.get(projectId, (data) => {
+        if (data[projectId]) {
+          chrome.storage.sync.set({
+            [projectId]: {
+              ...data[projectId],
+              status: "HOLD",
+            },
+          });
+          fetchAllProjects();
+        }
+      });
+    } else if (command === "play") {
+      chrome.storage.sync.get(projectId, (data) => {
+        if (data[projectId]) {
+          chrome.storage.sync.set({
+            [projectId]: {
+              ...data[projectId],
+              status: "ACTIVE",
+            },
+          });
+          fetchAllProjects();
+        }
+      });
     }
-    sendCommand(command, projectId);
   }
 });
 
@@ -345,7 +354,9 @@ async function addProject() {
       return;
     }
 
-    const formattedTime = formatTime(hours, minutes, seconds);
+    const formattedTime = formatTime(
+      calculateTotalSeconds(hours, minutes, seconds),
+    );
     const totalSeconds = calculateTotalSeconds(hours, minutes, seconds);
 
     const data = await chrome.storage.sync.get(null);
