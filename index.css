@@ -407,6 +407,11 @@ nav ul li:hover {
 .unactive-project-card {
   color: #303030;
 }
+.unactive-project-card h3 {
+  color: #303030;
+  font-size: 1rem;
+  margin: 0;
+}
 .unactive-project-card .card-desc {
   color: #303030;
 }
@@ -422,6 +427,11 @@ nav ul li:hover {
 }
 .completed-project-card {
   color: #6cca2d;
+}
+.completed-project-card h3 {
+  color: #6cca2d;
+  font-size: 1rem;
+  margin: 0;
 }
 .completed-project-card .card-desc {
   color: #6cca2d;
