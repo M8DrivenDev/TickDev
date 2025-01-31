@@ -1,5 +1,3 @@
-// background.js
-
 const TIME_CONSTANTS = {
   SECONDS_IN_HOUR: 3600,
   SECONDS_IN_MINUTE: 60,
@@ -8,7 +6,7 @@ const TIME_CONSTANTS = {
 function startPersistentProjectCounter() {
   setInterval(async () => {
     try {
-      const data = await chrome.storage.sync.get(null);
+      const data = await chrome.storage.local.get(null);
       for (const [id, projectData] of Object.entries(data)) {
         if (projectData.status !== "ACTIVE") continue;
 
@@ -17,7 +15,7 @@ function startPersistentProjectCounter() {
         remainingTime--;
 
         if (remainingTime <= 0) {
-          await chrome.storage.sync.set({
+          await chrome.storage.local.set({
             [id]: {
               ...projectData,
               status: "DONE",
@@ -32,7 +30,7 @@ function startPersistentProjectCounter() {
             message: `Project "${projectData.name}" has finished its countdown.`,
           });
         } else {
-          await chrome.storage.sync.set({
+          await chrome.storage.local.set({
             [id]: {
               ...projectData,
               remainingTime,

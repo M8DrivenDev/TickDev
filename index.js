@@ -1,6 +1,6 @@
 function fetchAllProjects() {
   let allProjects = [];
-  chrome.storage.sync.get(null, (data) => {
+  chrome.storage.local.get(null, (data) => {
     for (let key in data) {
       if (data.hasOwnProperty(key)) {
         allProjects.push({ projectId: key, details: data[key] });
@@ -101,9 +101,9 @@ document.getElementById("cards-container").addEventListener("click", (e) => {
     const command = button.getAttribute("data-command");
     const projectId = button.getAttribute("data-project");
     if (command === "complete") {
-      chrome.storage.sync.get(null, (data) => {
+      chrome.storage.local.get(null, (data) => {
         if (data[projectId]) {
-          chrome.storage.sync.set({
+          chrome.storage.local.set({
             [projectId]: {
               ...data[projectId],
               status: "DONE",
@@ -113,13 +113,13 @@ document.getElementById("cards-container").addEventListener("click", (e) => {
         fetchAllProjects();
       });
     } else if (command === "delete") {
-      chrome.storage.sync.remove([projectId], () => {
+      chrome.storage.local.remove([projectId], () => {
         fetchAllProjects();
       });
     } else if (command === "pause") {
-      chrome.storage.sync.get(projectId, (data) => {
+      chrome.storage.local.get(projectId, (data) => {
         if (data[projectId]) {
-          chrome.storage.sync.set({
+          chrome.storage.local.set({
             [projectId]: {
               ...data[projectId],
               status: "HOLD",
@@ -129,9 +129,9 @@ document.getElementById("cards-container").addEventListener("click", (e) => {
         }
       });
     } else if (command === "play") {
-      chrome.storage.sync.get(projectId, (data) => {
+      chrome.storage.local.get(projectId, (data) => {
         if (data[projectId]) {
-          chrome.storage.sync.set({
+          chrome.storage.local.set({
             [projectId]: {
               ...data[projectId],
               status: "ACTIVE",
@@ -143,8 +143,7 @@ document.getElementById("cards-container").addEventListener("click", (e) => {
     }
   }
 });
-
-chrome.storage.local.get(null, (data) => {
+chrome.storage.sync.get(null, (data) => {
   if (data["navigationView"] === "addNew") {
     navigateToAdd();
   } else if (data["navigationView"] === "projects") {
@@ -241,7 +240,7 @@ document.getElementById("project-time-hours").addEventListener("focusout", () =>
 function navigateToAdd() {
   document.getElementById("projects-nav").classList.remove("active-list");
   document.getElementById("add-new-nav").classList.add("active-list");
-  chrome.storage.local.set({ navigationView: "addNew" });
+  chrome.storage.sync.set({ navigationView: "addNew" });
   document.getElementById("add-new-container").style.display = "";
   document.getElementById("projects-container").style.display = "none";
   removeMsgs();
@@ -249,14 +248,13 @@ function navigateToAdd() {
 function navigateToProjects() {
   document.getElementById("add-new-nav").classList.remove("active-list");
   document.getElementById("projects-nav").classList.add("active-list");
-  chrome.storage.local.set({ navigationView: "projects" });
+  chrome.storage.sync.set({ navigationView: "projects" });
   document.getElementById("add-new-container").style.display = "none";
   document.getElementById("projects-container").style.display = "";
   fetchAllProjects();
   removeMsgs();
 }
 
-//* This focus and unfocus functions //
 function unfocusInput({ id, labelId }) {
   if (!document.getElementById(id).value) {
     document.getElementById(id).classList.remove("focus-input");
@@ -268,7 +266,6 @@ function focusInput({ id, labelId }) {
   document.getElementById(id).classList.add("focus-input");
   document.getElementById(labelId).classList.add("active-label");
 }
-// End //
 
 const TIME_CONSTANTS = {
   SECONDS_IN_HOUR: 3600,
@@ -359,9 +356,11 @@ async function addProject() {
     );
     const totalSeconds = calculateTotalSeconds(hours, minutes, seconds);
 
-    const data = await chrome.storage.sync.get(null);
+    const data = await chrome.storage.local.get(null);
     const projectExists = Object.values(data).some(
-      (project) => project.name.toLowerCase() === projectName.toLowerCase(),
+      (project) =>
+        project.name &&
+        project.name.toLowerCase() === projectName.toLowerCase(),
     );
 
     if (projectExists) {
@@ -379,7 +378,7 @@ async function addProject() {
       remainingTime: totalSeconds,
     };
 
-    await chrome.storage.sync.set({ [projectId]: newProject });
+    await chrome.storage.local.set({ [projectId]: newProject });
     displaySuccess("Your project added successfully.");
     clearFormInputs();
   } catch (error) {
@@ -424,7 +423,7 @@ function removeMsgs() {
   }
 }
 function updateTimers() {
-  chrome.storage.sync.get(null, (data) => {
+  chrome.storage.local.get(null, (data) => {
     for (const [projectId, details] of Object.entries(data)) {
       const timerElement = document.getElementById(projectId);
       if (timerElement && details.status === "ACTIVE") {
